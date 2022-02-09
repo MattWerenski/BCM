@@ -1,9 +1,17 @@
+'''
+NLP
+
+This script compares several methods for predicting the topic of a document.
+This code follows the setup described in section 4.4 and it can be used 
+to generate Figure 5
+'''
+
 import numpy as np
 from tqdm import tqdm
 import scipy.io as sio
 from joblib import Parallel, delayed
 from utils import nlp_utilities as nu
-
+import matplotlib.pyplot as plt
 
 # USE THIS ONE FOR BBCSports
 mat_fname = '../NLP/bbcsport-emd_tr_te_split.mat' 
@@ -23,9 +31,9 @@ BOW_X = mat_contents['BOW_xtr'][0]# Same shape as data, the value shows how ofte
 
 nlabels = np.unique(labels).shape[0] # number of unique labels
 
-nreps = 5
-ntest = 10
-nrefs_range = np.arange(3)+2 # 2-10
+nreps = 50
+ntest = 100
+nrefs_range = np.arange(11)+2 # 2-12
 nclasses = len(np.unique(labels))
 
 def nested_trial(data, bow_x, base_idx, ref_idxs, classes, refs_range): 
@@ -81,4 +89,11 @@ for rep in range(nreps):
                 
 pbar.close()
 
+plt.plot(nrefs_range, results.mean(1), linewidth=2.2)
+plt.xlabel('Number of Reference Documents per Class', labelpad=0.5)
+plt.ylabel('Accuracy', labelpad=0.5)
+plt.legend(['1NN','Min. Avg. Dist.','Min. BC Loss','Max. Coordinate'], loc='lower right')
+plt.title('BBC Sports Topic Prediction')
+plt.tight_layout()
+plt.show()
 print("DONE")

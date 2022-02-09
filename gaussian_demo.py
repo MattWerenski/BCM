@@ -5,8 +5,7 @@ This script compares several methods for estimating the coordinate lambda.
 It is especially focused on the small sample regime where there may be 
 a large discrepancy between the empirical covariance and the true covariance.
 
-Be sure to change the write_dir parameter on every
-execution to avoid overwriting previous results.
+It can be used to generate Figure 3
 '''
 
 import numpy as np
@@ -14,6 +13,7 @@ import scipy as sp
 import scipy.stats
 from tqdm import tqdm
 from joblib import Parallel, delayed
+import matplotlib.pyplot as plt
 
 from utils import gaussian_utilities as gu
 
@@ -23,8 +23,10 @@ sqrtm = sp.linalg.sqrtm
 
 print('Trial Settings')
 
-ntrials = 5
-testpoints = (np.arange(10)+1)*50
+# change these to do more repititions or change the number
+# of samples being seen.
+ntrials = 250
+testpoints = (np.arange(30)+1)*20 
 
 print('  p', 6) # needs to be hardcoded below
 print('  dim', 10) # needs to be hardcoded below
@@ -88,5 +90,48 @@ def trial(nsamples):
 # by increasing this number
 
 results = Parallel(n_jobs=1)(delayed(trial)(nsamples) for nsamples in tqdm(params, position=0, leave=True))
+results = np.array(results)
+
+# parse the reults 
+# Wasserstein distances between estimate and true distribution
+emp_dists = results[:,1].reshape((250,30))
+gnm_dists = results[:,2].reshape((250,30))
+mle_dists = results[:,3].reshape((250,30))
+
+# L1 error in estimating the coordinate.
+gnm_l1s = results[:,4].reshape((250,30))
+mle_l1s = results[:,5].reshape((250,30))
+
+linspace = (np.arange(30) + 1) * 20
+
+# compute average distances
+emp_means = emp_dists.mean(0)
+mle_means = mle_dists.mean(0)
+gnm_means = gnm_dists.mean(0)
+# and standard deviations
+emp_stds = emp_dists.std(0)
+mle_stds = mle_dists.std(0)
+gnm_stds = gnm_dists.std(0)
+
+# then plot everything
+plt.fill_between(linspace, emp_means - emp_stds, emp_means + emp_stds, 
+                 alpha=0.2, label='_nolegend_')
+plt.plot(linspace, emp_means)
+
+plt.fill_between(linspace, mle_means - mle_stds, mle_means + mle_stds, 
+                 alpha=0.2, label='_nolegend_')
+plt.plot(linspace, mle_means)
+
+plt.fill_between(linspace, gnm_means - gnm_stds, gnm_means + gnm_stds, 
+                 alpha=0.2, label='_nolegend_')
+plt.plot(linspace, gnm_means)
+
+plt.ylim([0,1.5])
+plt.legend(['Emprical','MLE','Gradient Norm'])
+plt.xlabel('Number of Samples')
+plt.ylabel('Wasserstein-2 Distance')
+plt.title('Distance to Recovered Matrix')
+plt.tight_layout()
+plt.show()
 
 print("DONE")

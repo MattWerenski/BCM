@@ -4,6 +4,7 @@ import scipy.stats
 import mnist
 import ot
 import tqdm
+import matplotlib.pyplot as plt
 
 from utils import mnist_utilities, opt_utilities
 
@@ -23,7 +24,7 @@ print("Genererating Dataset")
 # set up the dataset (noiseless)
 digit = 4
 nref_digit = 10
-ntarg_digit = 10
+ntarg_digit = 500
 
 indices = np.where(train_labels == digit)[0]
 perm = np.random.permutation(len(indices))
@@ -158,6 +159,29 @@ for i in tqdm.tqdm(range(ntarg_digit)):
     noe_dists[i] = noe_dist
     ent_dists[i] = ent_dist
 
-print("DONE")
+
 print(f"  No Entropy {noe_dists.mean()}")
 print(f"  Entropy {ent_dists.mean()}")
+
+# pick a random perturbed target and generate a row of Figure 4
+i = np.random.randint(0,ntarg_digit)
+
+ax = plt.subplot(1,4,1)
+ax.imshow(targ_perts[i])
+
+ax = plt.subplot(1,4,2)
+proj = opt_utilities.linear_projection(targ_perts[i].reshape(-1), ref_digits.reshape((nref_digit,-1)))
+proj = proj.reshape((28,28))
+ax.imshow(proj)
+
+ax = plt.subplot(1,4,3)
+bc = mnist_utilities.barycenter(ref_digits,ent_lams[i], entropy=0.001, threshold=0.001)
+ax.imshow(bc)
+
+ax = plt.subplot(1,4,4)
+ax.imshow(targ_digits[i])
+
+plt.show()
+
+
+print("DONE")

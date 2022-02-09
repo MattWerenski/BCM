@@ -55,7 +55,7 @@ For the Gaussian experiments, you will need PyTorch, and the installation depend
 Assuming you've done everything above, you can run the following commands from the activate conda environment created above.
 
 ```
-python gaussian_demo.py
-python mnist_demo.py
-python nlp_demo.py
+python gaussian_demo.py # used to make Figure 3
+python mnist_demo.py    # used to make Figure 4
+python nlp_demo.py      # used to make Figure 5
 ```
